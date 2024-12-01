@@ -1,0 +1,12 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "text": "全部文章"
+  },
+  {
+    "type": "dir",
+    "name": "202412",
+    "label": "2024年12月"
+  }
+]
