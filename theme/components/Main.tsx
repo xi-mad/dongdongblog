@@ -40,7 +40,7 @@ const Main = () => {
         <div className="max-w-4xl mx-auto px-4 py-8">
             <header className="flex items-center gap-4 mb-12">
                 <img 
-                    src={`/icon.png`} 
+                    src={`${base}/icon.png`} 
                     alt="Blog Icon" 
                     className="w-12 h-12 rounded-lg shadow-sm"
                 />
