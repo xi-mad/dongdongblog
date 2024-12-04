@@ -14,7 +14,8 @@
     "@rspress/shared": "^1.37.3",
     "dayjs": "^1.11.13",
     "gray-matter": "^4.0.3",
-    "rspress": "^1.37.2"
+    "rspress": "^1.37.2",
+    "zustand": "^4.5.0"
   },
   "devDependencies": {
     "@biomejs/biome": "1.5.3",

@@ -1,30 +1,23 @@
 import dayjs from 'dayjs';
-import { posts } from 'virtual-post-data';
+import { posts, Post } from 'virtual-post-data';
 import { usePageData } from 'rspress/runtime';
 import Pagination from './Pagination';
-import { usePagination } from '../hooks/usePagination';
-
-interface PostInfo {
-    title: string;
-    route: string;
-    date: string;
-    tags?: string[];
-}
+import { useStore } from '../hooks/useStore';
 
 const POSTS_PER_PAGE = 5;
 
 const Main = () => {
     const { siteData } = usePageData();
     const { base } = siteData;
-    
-    const { currentPage, setPage } = usePagination({
-        key: 'blog_current_page',
-        defaultPage: 1
-    });
+    const { currentTag, currentPage, setCurrentPage } = useStore();
 
-    // 按日期排序
-    const sortedPosts = [...posts].sort(
-        (a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf()
+    // 先过滤标签，再排序
+    const filteredPosts = currentTag
+        ? (posts as Post[]).filter((post: Post) => post.tags?.includes(currentTag))
+        : posts;
+
+    const sortedPosts = [...filteredPosts].sort(
+        (a: Post, b: Post) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf()
     );
 
     // 计算总页数
@@ -45,12 +38,12 @@ const Main = () => {
                     className="w-12 h-12 rounded-lg shadow-sm"
                 />
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-                    Dongdong's Blog
+                    {currentTag ? `Dongdong's Blog # ${currentTag}` : "Dongdong's Blog"}
                 </h1>
             </header>
 
             <div className="space-y-6">
-                {currentPosts.map((post) => (
+                {currentPosts.map((post: Post) => (
                     <article
                         key={post.route}
                         className="p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
@@ -61,7 +54,7 @@ const Main = () => {
                             </time>
                             {post.tags && post.tags.length > 0 && (
                                 <div className="flex gap-2">
-                                    {post.tags.map((tag) => (
+                                    {post.tags.map((tag: string) => (
                                         <span
                                             key={tag}
                                             className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full"
@@ -93,7 +86,7 @@ const Main = () => {
                 <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}
-                    onPageChange={setPage}
+                    onPageChange={setCurrentPage}
                 />
             )}
         </div>
