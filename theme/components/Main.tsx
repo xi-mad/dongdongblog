@@ -29,7 +29,7 @@ const Main = () => {
     const currentPosts = sortedPosts.slice(
         (currentPage - 1) * POSTS_PER_PAGE,
         currentPage * POSTS_PER_PAGE
-    );  
+    );
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-8">
