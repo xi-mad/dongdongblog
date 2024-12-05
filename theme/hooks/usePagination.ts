@@ -31,6 +31,6 @@ export const usePagination = (options: PaginationOptions) => {
 
     return {
         currentPage,
-        setPage: handlePageChange
+        setPage: handlePageChange,
     };
-}; 
+};

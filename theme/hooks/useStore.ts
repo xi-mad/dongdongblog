@@ -17,4 +17,4 @@ export const useStore = create<BlogStore>((set) => ({
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     },
-})); 
+}));

@@ -49,7 +49,7 @@ const Archives = () => {
                         {group.posts.map((post) => (
                             <li key={post.route} className="flex items-center">
                                 <span className="text-gray-500 w-32">
-                                    {dayjs(post.date).format('YYYY-MM-DD')}  
+                                    {dayjs(post.date).format('YYYY-MM-DD')}
                                 </span>
                                 <a
                                     href={`${base}${post.route}`}

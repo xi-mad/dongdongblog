@@ -13,7 +13,9 @@ const Main = () => {
 
     // 先过滤标签，再排序
     const filteredPosts = currentTag
-        ? (posts as Post[]).filter((post: Post) => post.tags?.includes(currentTag))
+        ? (posts as Post[]).filter((post: Post) =>
+              post.tags?.includes(currentTag)
+          )
         : posts;
 
     const sortedPosts = [...filteredPosts].sort(
@@ -27,18 +29,20 @@ const Main = () => {
     const currentPosts = sortedPosts.slice(
         (currentPage - 1) * POSTS_PER_PAGE,
         currentPage * POSTS_PER_PAGE
-    );
+    );  
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-8">
             <header className="flex items-center gap-4 mb-12">
-                <img 
-                    src={`${base}/icon.png`} 
-                    alt="Blog Icon" 
+                <img
+                    src={`${base}/icon.png`}
+                    alt="Blog Icon"
                     className="w-12 h-12 rounded-lg shadow-sm"
                 />
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-                    {currentTag ? `Dongdong's Blog # ${currentTag}` : "Dongdong's Blog"}
+                    {currentTag
+                        ? `Dongdong's Blog # ${currentTag}`
+                        : "Dongdong's Blog"}
                 </h1>
             </header>
 

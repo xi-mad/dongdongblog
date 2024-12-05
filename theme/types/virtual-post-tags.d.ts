@@ -10,4 +10,4 @@ declare module 'virtual-post-tags' {
     }
 
     export const tags: Tag[];
-} 
+}

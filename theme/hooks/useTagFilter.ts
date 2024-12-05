@@ -8,4 +8,4 @@ interface TagFilterStore {
 export const useTagFilter = create<TagFilterStore>((set) => ({
     currentTag: null,
     setCurrentTag: (tag) => set({ currentTag: tag }),
-})); 
+}));

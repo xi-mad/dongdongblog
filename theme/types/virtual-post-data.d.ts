@@ -10,4 +10,4 @@ declare module 'virtual-post-data' {
     }
 
     export const posts: Post[];
-} 
+}
