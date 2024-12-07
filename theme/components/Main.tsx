@@ -50,10 +50,10 @@ const Main = () => {
                 {currentPosts.map((post: Post) => (
                     <article
                         key={post.route}
-                        className="p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+                        className="p-6 rounded-lg shadow hover:shadow-md transition-shadow"
                     >
                         <div className="flex justify-between items-start mb-3">
-                            <time className="text-sm text-gray-500">
+                            <time className="text-sm text-gray-400">
                                 {dayjs(post.date).format('YYYY-MM-DD')}
                             </time>
                             {post.tags && post.tags.length > 0 && (
@@ -61,9 +61,9 @@ const Main = () => {
                                     {post.tags.map((tag: string) => (
                                         <span
                                             key={tag}
-                                            className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full"
+                                            className="px-2 py-1 text-xs text-gray-400 rounded-full"
                                         >
-                                            {tag}
+                                            # {tag}
                                         </span>
                                     ))}
                                 </div>

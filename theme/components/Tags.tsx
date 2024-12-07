@@ -10,7 +10,7 @@ const Tags = () => {
     };
 
     return (
-        <div className="p-4 mb-6 bg-white rounded-lg shadow">
+        <div className="p-4 mb-6 rounded-lg shadow">
             <h3 className="text-lg font-bold mb-3"># 标签</h3>
             <div className="flex flex-wrap gap-2">
                 {tags.map((tag) => (
@@ -18,9 +18,7 @@ const Tags = () => {
                         key={tag.name}
                         onClick={() => handleTagClick(tag.name)}
                         className={`px-3 py-1 text-sm rounded-full transition-colors ${
-                            currentTag === tag.name
-                                ? 'bg-blue-500 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            currentTag === tag.name ? 'bg-gray-400' : ''
                         }`}
                     >
                         {tag.name} ({tag.count})

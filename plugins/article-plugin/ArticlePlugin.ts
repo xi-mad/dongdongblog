@@ -52,7 +52,11 @@ class PostDataManager {
         // 构建文章路由
         const relativePath = path.relative(process.cwd(), filePath);
         const baseName = path.basename(filePath);
-        const route = '/' + relativePath.slice(0, -baseName.length);
+        let route = '/' + relativePath.slice(0, -baseName.length);
+        if (route.endsWith('/')) {
+            route = route.slice(0, -1);
+        }
+        route = route + '.html';
 
         const post: PostInfo = {
             title: frontmatter.title || '',
@@ -162,28 +166,6 @@ export function ArticlePlugin(options: ArticlePluginOptions): RspressPlugin {
                 });
             });
             return pages;
-        },
-
-        extendPageData(pageData) {
-            // 为文章页面注入额外数据
-            if (pageData?.frontmatter.layout === 'article') {
-                const posts = postData.getPosts();
-                const index = posts.findIndex(
-                    (post) => post.route === pageData.routePath
-                );
-
-                if (index > -1) {
-                    // 添加前后文章导航
-                    pageData.prevPost = posts[index + 1];
-                    pageData.nextPost = posts[index - 1];
-
-                    // 添加文章元数据
-                    const post = posts[index];
-                    pageData.date = post.date;
-                    pageData.categories = post.categories;
-                    pageData.tags = post.tags;
-                }
-            }
         },
 
         addRuntimeModules() {

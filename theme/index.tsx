@@ -1,21 +1,27 @@
+import { Fragment } from 'react';
 import { usePageData } from 'rspress/runtime';
-import Theme from 'rspress/theme';
+import Theme, {
+    getCustomMDXComponent as getRspressMDXComponent,
+} from 'rspress/theme';
 import Archives from './components/Archives';
 import BottomTitle from './components/BottomTitle';
+import Footer from './components/Footer';
+import GiscusComment from './components/Giscus';
 import Main from './components/Main';
 import Tags from './components/Tags';
-
-import { Fragment } from 'react';
-
-import { getCustomMDXComponent as getRspressMDXComponent } from 'rspress/theme';
 
 const Layout = () => {
     const { page } = usePageData();
     const { frontmatter } = page;
 
+    const commonProps = {
+        bottom: <Footer />,
+    };
+
     if (frontmatter.layout === 'main') {
         return (
             <Theme.Layout
+                {...commonProps}
                 beforeOutline={<Tags />}
                 components={{ wrapper: Main }}
             />
@@ -23,9 +29,24 @@ const Layout = () => {
     }
 
     if (frontmatter.layout === 'archives') {
-        return <Theme.Layout components={{ wrapper: Archives }} />;
+        return (
+            <Theme.Layout {...commonProps} components={{ wrapper: Archives }} />
+        );
     }
-    return <Theme.Layout />;
+
+    return (
+        <Theme.Layout
+            {...commonProps}
+            beforeDocFooter={
+                <>{frontmatter?.layout === 'article' && <GiscusComment />}</>
+            }
+            components={{
+                wrapper: ({ children }: { children: React.ReactNode }) => (
+                    <div>{children}</div>
+                ),
+            }}
+        />
+    );
 };
 
 export default {
