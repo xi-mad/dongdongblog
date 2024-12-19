@@ -6,6 +6,8 @@ export default defineConfig({
     base: '/dongdongblog',
     root: path.join(__dirname, 'docs'),
     title: "Dongdong's Blog",
+    logo: '/icon.png',
+    logoText: "Dongdong's Blog",
     icon: '/icon.png',
     globalStyles: path.join(__dirname, 'styles/index.css'),
     plugins: [
