@@ -30,6 +30,7 @@ const Main = () => {
         (currentPage - 1) * POSTS_PER_PAGE,
         currentPage * POSTS_PER_PAGE
     );
+    console.log(currentPosts);
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-8">

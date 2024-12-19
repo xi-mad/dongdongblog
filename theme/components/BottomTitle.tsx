@@ -1,6 +1,8 @@
 import { FC } from 'react';
 import { usePageData } from 'rspress/runtime';
 import { useBusuanzi, BusuanziMeta } from './Busuanzi';
+import { useDark } from 'rspress/runtime';
+
 
 interface PageFrontmatter {
     date?: string;
@@ -18,7 +20,7 @@ const BottomTitle: FC = () => {
     const { frontmatter, readingTime, words } = page as unknown as PageData;
     const { date, tags = [] } = frontmatter;
     const { loading, pageView } = useBusuanzi();
-
+    const isDark = useDark();
     const formatDate = (dateStr?: string) => {
         if (!dateStr) return '';
         return dateStr
@@ -56,7 +58,13 @@ const BottomTitle: FC = () => {
                             {tags.map((tag: string) => (
                                 <span
                                     key={tag}
-                                    className="px-2 py-0.5 text-xs rounded-full transition-colors"
+                                    className={`
+                                        px-2 py-0.5 text-xs rounded-full transition-colors
+                                        ${isDark 
+                                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                        }
+                                    `}
                                 >
                                     # {tag}
                                 </span>

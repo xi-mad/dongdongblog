@@ -1,15 +1,12 @@
 import { AdditionalPage, RspressPlugin } from '@rspress/shared';
 import dayjs from 'dayjs';
-import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import matter from 'gray-matter';
 import fs, { PathLike } from 'node:fs';
 import path from 'node:path';
 
-// 设置时区
+// 设置为 UTC
 dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.tz.setDefault('Asia/Shanghai');
 
 interface PostInfo {
     title: string;
@@ -63,7 +60,7 @@ class PostDataManager {
             route,
             path: filePath,
             date: frontmatter.date
-                ? dayjs(frontmatter.date).format('YYYY-MM-DD HH:mm:ss')
+                ? dayjs.utc(frontmatter.date).format('YYYY-MM-DD HH:mm:ss')
                 : '',
             categories: Array.isArray(frontmatter.categories)
                 ? frontmatter.categories
@@ -110,7 +107,7 @@ class PostDataManager {
 
     getPosts(): PostInfo[] {
         return this.posts.sort(
-            (a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf()
+            (a, b) => dayjs.utc(b.date).valueOf() - dayjs.utc(a.date).valueOf()
         );
     }
 
