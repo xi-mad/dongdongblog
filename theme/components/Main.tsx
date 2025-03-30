@@ -78,11 +78,11 @@ const Main = () => {
                                 {post.title}
                             </a>
                         </h2>
-                        {post.excerpt && (
+                        {/* {post.excerpt && (
                             <p className="text-gray-600 line-clamp-2 text-sm">
                                 {post.excerpt}
                             </p>
-                        )}
+                        )} */}
                     </article>
                 ))}
             </div>
