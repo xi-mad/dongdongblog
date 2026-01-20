@@ -1,0 +1,177 @@
+---
+layout: article
+title: 搞了个推荐系统的脚手架，大家来看看设计得怎么样
+date: 2026-01-20 23:00:00
+tags:
+  - 技术
+---
+
+# 搞了个推荐系统的脚手架，大家来看看设计得怎么样
+
+###
+
+做推荐系统两年多，基于对推荐系统的了解，沉淀了个工程框架。
+
+## (公司)现有系统问题
+
+**复用性问题**
+
+- 每个场景都是独立的流程，逻辑差不多但各写各的
+- 召回、过滤、排序的逻辑到处 copy
+- 混合推荐和单业务推荐不能复用，召回策略相似但代码分离
+- 新场景几乎需要重新实现一套召回、过滤、排序流程，不能快速响应
+
+**可观测性问题**
+
+- 出问题很难定位，不知道是哪个阶段的问题
+- 日志散落各处，想看完整流程得拼日志，没有结构化的日志
+
+## 设计思路
+
+### 标准流水线+自定义拦截器
+
+把推荐流程抽象成 7 个阶段，每个阶段都可以自定义策略，无论是调用外部接口还是自有实现，策略之间可以组合，每个阶段前后都可以自定义拦截器，比如性能埋点、曝光去重、结果记录这些通用逻辑。所有场景走同一套流水线：
+
+```
+实验分流 → 画像加载 → 召回 → 过滤 → 排序 → 重排 → 填充
+```
+
+![Prism Architecture](https://github.com/xi-mad/prism/raw/main/docs/architecture.png)
+
+### 组件化，复用性强
+
+每个阶段的策略都是独立组件，注册成 Spring Bean：
+
+```java
+// 召回策略
+@Component("UserInterestRecall")   // 用户兴趣召回
+public class UserInterestRecall implements RecallStrategy {}
+@Component("HotRecall")            // 热门召回
+public class HotRecall implements RecallStrategy {}
+@Component("CrossDomainRecall")    // 跨业务召回
+public class CrossDomainRecall implements RecallStrategy {}
+@Component("VectorRecall")         // 向量化召回
+public class VectorRecall implements RecallStrategy {}
+
+// 重排策略
+@Component("DiversityRerank")     // 多元化重排
+public class DiversityRerank implements RerankStrategy {}
+@Component("BusinessRuleRerank")  // 业务规则重排
+public class BusinessRuleRerank implements RerankStrategy {}
+@Component("AdRerank")            // 广告重排
+public class AdRerank implements RerankStrategy {}
+
+```
+
+混合推荐和单业务推荐的区别，就是配置里组合的策略不同，代码完全复用。
+
+### 配置驱动
+
+整个流程用 YAML 配置，不用改代码：
+
+```yaml
+recall:
+  - when: { experiment: "recall_exp", variant: "full" }
+    steps:
+      - name: "UserInterestRecall"
+      - name: "HotRecall"
+      - name: "CrossDomainRecall"
+  - when: { experiment: "recall_exp", variant: "minimal" }
+    steps:
+      - name: "UserInterestRecall"
+```
+
+不同场景、不同实验组，改配置就搞定，如果当前组件不满足需求，只用开发新的组件即可。完整的yaml可以在代码仓库中查看。
+
+### 全链路日志追踪
+
+推荐过程有完整的推荐日志，一目了然，方便排查问题：
+
+```json
+{
+  "globalLogs": [
+    "[2026-01-20 21:48:35] Starting Pipeline Execution for User: alice",
+    "[2026-01-20 21:48:35] Pipeline Execution Completed. Result Size: 25"
+  ],
+  "stages": {
+    "EXPERIMENT": {
+      "stage": "EXPERIMENT",
+      "duration": 0,
+      "inputIds": [],
+      "logs": [],
+      "now": "2026-01-20T21:48:35.11616",
+      "outputIds": [],
+      "plugins": {
+        "ExperimentStrategy": {
+          "name": "ExperimentStrategy",
+          "currentSize": 0,
+          "latency": 0,
+          "logs": [
+            "[2026-01-20 21:48:35] User [alice] assigned to Experiment [recall_exp], Variant [full]",
+            "[2026-01-20 21:48:35] User [alice] assigned to Experiment [rank_exp], Variant [mmoe]"
+          ]
+        }
+      },
+      "startTime": 1768916915116
+    },
+    "PROFILE": {
+      "stage": "PROFILE",
+      "duration": 3,
+      "inputIds": [],
+      "logs": [
+        "[2026-01-20 21:48:35] Loaded 1 exposure records for user: alice"
+      ],
+      "now": "2026-01-20T21:48:35.116304",
+      "outputIds": [],
+      "plugins": {
+        "MockProfile": {
+          "name": "MockProfile",
+          "currentSize": 0,
+          "latency": 3,
+          "logs": [
+            "[2026-01-20 21:48:35] get user: alice vector",
+            "[2026-01-20 21:48:35] get user: alice interests",
+            "[2026-01-20 21:48:35] get user: alice profile success"
+          ]
+        }
+      },
+      "startTime": 1768916915116
+    },
+    "RECALL": {
+      "stage": "RECALL",
+      "duration": 11,
+      "inputIds": [],
+      "logs": [],
+      "now": "2026-01-20T21:48:35.119306",
+      "outputIds": ["..."],
+      "plugins": {
+        "UserInterestRecall": {
+          "name": "UserInterestRecall",
+          "currentSize": 15,
+          "latency": 11,
+          "logs": []
+        }
+        ...
+      },
+      "startTime": 1768916915119
+    },
+    ...
+  }
+}
+```
+
+## 试一试
+
+项目地址：**https://github.com/xi-mad/prism**
+
+```bash
+git clone https://github.com/xi-mad/prism.git
+cd prism
+mvn spring-boot:run -Dspring-boot.run.jvmArguments="--enable-preview"
+```
+
+我是使用java25运行的，别的版本没有测试，跑起来访问 `http://localhost:9990/`，有个 Web 演示页面，可以直接编辑 YAML 配置，不同的策略组合就能看到不同的推荐结果和执行 Trace。不同的策略有不同的参数，可以再代码中查看，UI做的很简单，只是为了演示，实际应用时可以配置不同的场景，将配置信息存在数据库，业务根据场景id进行请求。
+
+如果有能帮助到您的地方，十分荣幸。请帮忙star一下，万分感谢。
+
+欢迎大家一起交流讨论~
