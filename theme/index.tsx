@@ -40,11 +40,6 @@ const Layout = () => {
             beforeDocFooter={
                 <>{frontmatter?.layout === 'article' && <GiscusComment />}</>
             }
-            components={{
-                wrapper: ({ children }: { children: React.ReactNode }) => (
-                    <div>{children}</div>
-                ),
-            }}
         />
     );
 };

@@ -8,7 +8,7 @@ import path from 'node:path';
 // 设置为 UTC
 dayjs.extend(utc);
 
-interface PostInfo {
+export interface PostInfo {
     title: string;
     route: string;
     path: string;
@@ -18,13 +18,13 @@ interface PostInfo {
     excerpt: string;
 }
 
-interface PostTag {
+export interface PostTag {
     name: string;
     count: number;
     posts: PostInfo[];
 }
 
-interface PostCategory {
+export interface PostCategory {
     name: string;
     count: number;
     children: PostCategory[];
@@ -35,12 +35,44 @@ interface ArticlePluginOptions {
     postsDir: string;
 }
 
-class PostDataManager {
+export interface ArticleCatalogOptions {
+    postsDir: string;
+}
+
+function traverseFolder(
+    folderPath: PathLike,
+    callback: (path: PathLike) => void
+) {
+    const items = fs.readdirSync(folderPath);
+    items.forEach((item) => {
+        const itemPath = path.join(folderPath.toString(), item);
+        const stats = fs.statSync(itemPath);
+        if (stats.isDirectory()) {
+            traverseFolder(itemPath, callback);
+        } else if (stats.isFile()) {
+            callback(itemPath);
+        }
+    });
+}
+
+export class ArticleCatalog {
     private posts: PostInfo[] = [];
     private categories = new Map<string, PostCategory>();
     private tags = new Map<string, PostTag>();
 
-    addPost(filePath: string) {
+    constructor(options: ArticleCatalogOptions) {
+        const articlesDir = path.join(process.cwd(), options.postsDir);
+        if (fs.existsSync(articlesDir)) {
+            traverseFolder(articlesDir, (itemPath) => {
+                const ext = path.extname(itemPath.toString());
+                if (['.md', '.mdx'].includes(ext)) {
+                    this.addPost(itemPath.toString());
+                }
+            });
+        }
+    }
+
+    private addPost(filePath: string) {
         const content = fs.readFileSync(filePath, 'utf-8');
         const { data: frontmatter, excerpt } = matter(content, {
             excerpt: true,
@@ -120,43 +152,15 @@ class PostDataManager {
     }
 }
 
-function traverseFolder(
-    folderPath: PathLike,
-    callback: (path: PathLike) => void
-) {
-    const items = fs.readdirSync(folderPath);
-    items.forEach((item) => {
-        const itemPath = path.join(folderPath.toString(), item);
-        const stats = fs.statSync(itemPath);
-        if (stats.isDirectory()) {
-            traverseFolder(itemPath, callback);
-        } else if (stats.isFile()) {
-            callback(itemPath);
-        }
-    });
-}
-
 export function ArticlePlugin(options: ArticlePluginOptions): RspressPlugin {
-    const postData = new PostDataManager();
+    const catalog = new ArticleCatalog({ postsDir: options.postsDir });
 
     return {
         name: 'article-plugin',
 
-        beforeBuild() {
-            // 遍历文章目录,解析文章信息
-            const articlesDir = path.join(process.cwd(), options.postsDir);
-            traverseFolder(articlesDir, (itemPath) => {
-                const ext = path.extname(itemPath.toString());
-                if (['.md', '.mdx'].includes(ext)) {
-                    postData.addPost(itemPath.toString());
-                }
-            });
-        },
-
         addPages() {
             const pages: AdditionalPage[] = [];
-            // 为每篇文章添加路由
-            postData.getPosts().forEach((post) => {
+            catalog.getPosts().forEach((post) => {
                 pages.push({
                     routePath: post.route,
                     filepath: post.path,
@@ -166,13 +170,12 @@ export function ArticlePlugin(options: ArticlePluginOptions): RspressPlugin {
         },
 
         addRuntimeModules() {
-            // 注入运行时数据,供前端使用
             return {
                 'virtual-post-data': `
-                    export const posts = ${JSON.stringify(postData.getPosts())}
+                    export const posts = ${JSON.stringify(catalog.getPosts())}
                 `,
                 'virtual-post-tags': `
-                    export const tags = ${JSON.stringify(postData.getTags())}
+                    export const tags = ${JSON.stringify(catalog.getTags())}
                 `,
             };
         },
